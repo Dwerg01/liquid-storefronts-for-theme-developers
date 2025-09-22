@@ -18,8 +18,7 @@
     rel="stylesheet"
     href="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css"
     media="print"
-    onload="this.media='all'"
-  >
+    onload="this.media='all'">
 {%- endif -%}
 
 <div class="product">
@@ -32,7 +31,9 @@
       <ul class="product-media grid list-unstyled" role="list">
         {%- unless featured_media == null -%}
           <li data-media-id="{{ section.id }}-{{ featured_media.id }}">
-            {% render 'product-thumbnail', media: featured_media, loading: 'eager' %}
+            {% render 'product-thumbnail'
+              , media: featured_media
+              , loading: 'eager' %}
           </li>
         {%- endunless -%}
         {%- for media in product.media -%}
@@ -56,10 +57,23 @@
       {%- assign product_form_id = 'Product-Form-' | append: section.id -%}
       {%- for block in section.blocks -%}
         {%- case block.type -%}
+          {%- when "model_info" -%}
+            <div {{ block.shopify_attributes }}>
+              <p>{{ product.metafields.models.model_info.value.name.value }} is {{ product.metafields.models.model_info.value.height | metafield_tag }}
+                and wearing size {{ product.metafields.model.wearing_size.value }}.
+              </p>
+              <p>{{ product.metafields.models.model_info.value.name.value }}'s measurements:
+              </p>
+              <ul>
+                <li>Bust: {{ product.metafields.models.model_info.value.bust | metafield_tag }}</li>
+                <li>Waist: {{ product.metafields.models.model_info.value.waist | metafield_tag }}</li>
+                <li>Hips: {{ product.metafields.models.model_info.value.hips | metafield_tag }}</li>
+              </ul>
+            </div>
           {%- when '@app' -%}
             {% render block %}
           {%- when 'text' -%}
-            <p {{ block.shopify_attributes }}>
+            <p class="uppercase" {{ block.shopify_attributes }}>
               {{ block.settings.text }}
             </p>
           {%- when 'title' -%}
@@ -71,9 +85,11 @@
               id="Price-{{ section.id }}"
               class="no-js-hidden"
               role="status"
-              {{ block.shopify_attributes }}
-            >
-              {%- render 'price', product: product, use_variant: true, show_badges: true -%}
+              {{ block.shopify_attributes }}>
+              {%- render 'price'
+                , product: product
+                , use_variant: true
+                , show_badges: true -%}
             </div>
             {%- if cart.taxes_included or shop.shipping_policy.body != blank -%}
               <div>
@@ -87,12 +103,13 @@
             {%- endif -%}
             <div {{ block.shopify_attributes }}>
               {%- assign installment_id = 'Installment-' | append: section.id -%}
-              {%- form 'product', product, id: installment_id -%}
+              {%- form 'product'
+                , product
+                , id: installment_id -%}
                 <input
                   type="hidden"
                   name="id"
-                  value="{{ product.selected_or_first_available_variant.id }}"
-                >
+                  value="{{ product.selected_or_first_available_variant.id }}">
                 {{ form | payment_terms }}
               {%- endform -%}
             </div>
@@ -107,12 +124,14 @@
                 id="Quantity-{{ section.id }}"
                 min="1"
                 value="1"
-                form="{{ product_form_id }}"
-              >
+                form="{{ product_form_id }}">
             </div>
           {%- when 'variant_picker' -%}
             {%- unless product.has_only_default_variant -%}
-              <variant-selects class="no-js-hidden" data-section="{{ section.id }}" data-url="{{ product.url }}">
+              <variant-selects
+                class="no-js-hidden"
+                data-section="{{ section.id }}"
+                data-url="{{ product.url }}">
                 {%- for option in product.options_with_values -%}
                   <div>
                     <label for="Option-{{ section.id }}-{{ forloop.index0 }}">
@@ -121,15 +140,13 @@
                     <select
                       id="Option-{{ section.id }}-{{ forloop.index0 }}"
                       name="options[{{ option.name | escape }}]"
-                      form="{{ product_form_id }}"
-                    >
+                      form="{{ product_form_id }}">
                       {%- for value in option.values -%}
                         <option
                           value="{{ value | escape }}"
                           {% if option.selected_value == value %}
-                            selected="selected"
-                          {% endif %}
-                        >
+                          selected="selected"
+                          {% endif %}>
                           {{ value }}
                         </option>
                       {%- endfor -%}
@@ -151,18 +168,16 @@
                   <select
                     name="id"
                     id="Variants-{{ section.id }}"
-                    form="{{ product_form_id }}"
-                  >
+                    form="{{ product_form_id }}">
                     {%- for variant in product.variants -%}
                       <option
                         {% if variant == product.selected_or_first_available_variant %}
-                          selected="selected"
+                        selected="selected"
                         {% endif %}
                         {% if variant.available == false %}
-                          disabled
+                        disabled
                         {% endif %}
-                        value="{{ variant.id }}"
-                      >
+                        value="{{ variant.id }}">
                         {{ variant.title }}
                         {%- if variant.available == false %}
                           - {{ 'products.product.sold_out' | t -}}
@@ -176,30 +191,31 @@
             {%- endunless -%}
           {%- when 'buy_buttons' -%}
             <product-form {{ block.shopify_attributes }}>
-              <div class="message-error" role="alert" hidden></div>
+              <div
+                class="message-error"
+                role="alert"
+                hidden></div>
 
-              {%- form 'product',
-                product,
-                id: product_form_id,
-                class: 'product-form',
-                novalidate: 'novalidate',
-                data-type: 'add-to-cart-form'
+              {%- form 'product'
+                , product
+                , id: product_form_id
+                , class: 'product-form'
+                , novalidate: 'novalidate'
+                , data-type: 'add-to-cart-form'
               -%}
                 <input
                   type="hidden"
                   name="id"
                   value="{{ product.selected_or_first_available_variant.id }}"
-                  disabled
-                >
+                  disabled>
                 <div>
                   <button
                     type="submit"
                     name="add"
                     class="button"
                     {% if product.selected_or_first_available_variant.available == false %}
-                      disabled
-                    {% endif %}
-                  >
+                    disabled
+                    {% endif %}>
                     <span>
                       {%- if product.selected_or_first_available_variant.available -%}
                         {{ 'products.product.add_to_cart' | t }}
@@ -231,10 +247,7 @@
             {%- unless product.metafields.reviews.rating.value == blank -%}
               <p class="rating">
                 {{-
-                  'products.product.star_reviews_info'
-                  | t:
-                    rating_value: product.metafields.reviews.rating.value,
-                    rating_max: product.metafields.reviews.rating.value.scale_max
+                  'products.product.star_reviews_info' | t: rating_value: product.metafields.reviews.rating.value, rating_max: product.metafields.reviews.rating.value.scale_max
                 }}
                 <span>
                   {{- product.metafields.reviews.rating_count }}
@@ -263,7 +276,8 @@
                 <ul class="list-unstyled" role="list">
                   {%- for product in recommendations.products -%}
                     <li>
-                      {% render 'product-card', card_product: product %}
+                      {% render 'product-card'
+                        , card_product: product %}
                     </li>
                   {%- endfor -%}
                 </ul>
@@ -301,144 +315,147 @@
     "name": {{ product.title | json }},
     "url": {{ request.origin | append: product.url | json }},
     {% if seo_media -%}
-      "image": [
-        {{ seo_media | image_url: width: 1920 | prepend: "https:" | json }}
-      ],
-    {%- endif %}
-    "description": {{ product.description | strip_html | json }},
-    {% if product.selected_or_first_available_variant.sku != blank -%}
-      "sku": {{ product.selected_or_first_available_variant.sku | json }},
-    {%- endif %}
-    "brand": {
-      "@type": "Brand",
-      "name": {{ product.vendor | json }}
-    },
-    "offers": [
-      {%- for variant in product.variants -%}
-        {
-          "@type" : "Offer",
-          {%- if variant.sku != blank -%}
-            "sku": {{ variant.sku | json }},
-          {%- endif -%}
-          {%- if variant.barcode.size == 12 -%}
-            "gtin12": {{ variant.barcode }},
-          {%- endif -%}
-          {%- if variant.barcode.size == 13 -%}
-            "gtin13": {{ variant.barcode }},
-          {%- endif -%}
-          {%- if variant.barcode.size == 14 -%}
-            "gtin14": {{ variant.barcode }},
-          {%- endif -%}
-          "availability" : "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
-          "price" : {{ variant.price | divided_by: 100.00 | json }},
-          "priceCurrency" : {{ cart.currency.iso_code | json }},
-          "url" : {{ request.origin | append: variant.url | json }}
-        }{% unless forloop.last %},{% endunless %}
-      {%- endfor -%}
-    ]
-  }
+      "image" : [{{ seo_media | image_url: width: 1920 | prepend: "https:" | json }}],
+      {%- endif %}
+      "description": {{ product.description | strip_html | json }},
+      {% if product.selected_or_first_available_variant.sku != blank -%}
+        "sku": {{ product.selected_or_first_available_variant.sku | json }},
+        {%- endif %}
+        "brand": {
+          "@type": "Brand",
+          "name": {{ product.vendor | json }}
+        },
+        "offers": [
+                  {%- for variant in product.variants -%}
+            {
+                      "@type": "Offer",
+                      {%- if variant.sku != blank -%}
+                "sku": {{ variant.sku | json }},
+                      {%- endif -%}
+                {%- if variant.barcode.size == 12 -%}
+                  "gtin12": {{ variant.barcode }},
+                      {%- endif -%}
+                  {%- if variant.barcode.size == 13 -%}
+                    "gtin13": {{ variant.barcode }},
+                      {%- endif -%}
+                    {%- if variant.barcode.size == 14 -%}
+                      "gtin14": {{ variant.barcode }},
+                      {%- endif -%}
+                      "availability": "http://schema.org/{% if variant.available %} InStock{% else %}OutOfStock{% endif %}",
+                      "price": {{ variant.price | divided_by: 100.00 | json }},
+                      "priceCurrency": {{ cart.currency.iso_code | json }},
+                      "url": {{ request.origin | append: variant.url | json }}
+                    }{% unless forloop.last %},{% endunless %}
+                  {%- endfor -%}
+                ]
+              }
 </script>
 {% schema %}
-{
-  "name": "t:sections.main-product.name",
-  "tag": "section",
-  "class": "section",
-  "blocks": [
-    {
-      "type": "@app"
-    },
-    {
-      "type": "text",
-      "name": "t:sections.main-product.blocks.text.name",
-      "settings": [
-        {
-          "type": "text",
-          "id": "text",
-          "default": "Text block",
-          "label": "t:sections.main-product.blocks.text.settings.text.label"
-        }
-      ]
-    },
-    {
-      "type": "title",
-      "name": "t:sections.main-product.blocks.title.name",
-      "limit": 1
-    },
-    {
-      "type": "price",
-      "name": "t:sections.main-product.blocks.price.name",
-      "limit": 1
-    },
-    {
-      "type": "quantity_selector",
-      "name": "t:sections.main-product.blocks.quantity_selector.name",
-      "limit": 1
-    },
-    {
-      "type": "variant_picker",
-      "name": "t:sections.main-product.blocks.variant_picker.name",
-      "limit": 1
-    },
-    {
-      "type": "buy_buttons",
-      "name": "t:sections.main-product.blocks.buy_buttons.name",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "checkbox",
-          "id": "show_dynamic_checkout",
-          "default": true,
-          "label": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.label",
-          "info": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.info"
-        },
-        {
-          "type": "checkbox",
-          "id": "show_gift_card_recipient",
-          "default": false,
-          "label": "t:sections.main-product.blocks.buy_buttons.settings.show_gift_card_recipient.label",
-          "info": "t:sections.main-product.blocks.buy_buttons.settings.show_gift_card_recipient.info"
-        }
+  {
+    "name": "t:sections.main-product.name",
+    "tag": "section",
+    "class": "section",
+    "blocks": [
+      {
+        "type": "@app",
+      },
+      {
+        "type": "model_info",
+        "name": "t:sections.main-product.blocks.model_info.name",
+        "limit": 1
+      },
+      {
+        "type": "text",
+        "name": "t:sections.main-product.blocks.text.name",
+        "settings": [
+          {
+            "type": "text",
+            "id": "text",
+            "default": "Text block",
+            "label": "t:sections.main-product.blocks.text.settings.text.label"
+          }
         ]
-    },
-    {
-      "type": "description",
-      "name": "t:sections.main-product.blocks.description.name",
-      "limit": 1
-    },
-    {
-      "type": "rating",
-      "name": "t:sections.main-product.blocks.rating.name",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "paragraph",
-          "content": "t:sections.main-product.blocks.rating.settings.paragraph.content"
-        }
-      ]
-    },
-    {
-      "type": "pickup_availability",
-      "name": "Pickup availability",
-      "limit": 1
-    },
-    {
-      "type": "complementary",
-      "name": "t:sections.main-product.blocks.complementary_products.name",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "paragraph",
-          "content": "t:sections.main-product.blocks.complementary_products.settings.paragraph.content"
-        },
-        {
-          "type": "text",
-          "id": "block_heading",
-          "default": "Pairs well with",
-          "label": "t:sections.main-product.blocks.complementary_products.settings.heading.label"
-        }
-      ]
-    }
-  ],
-  "settings": []
-}
+      },
+      {
+        "type": "title",
+        "name": "t:sections.main-product.blocks.title.name",
+        "limit": 1
+      },
+      {
+        "type": "price",
+        "name": "t:sections.main-product.blocks.price.name",
+        "limit": 1
+      },
+      {
+        "type": "quantity_selector",
+        "name": "t:sections.main-product.blocks.quantity_selector.name",
+        "limit": 1
+      },
+      {
+        "type": "variant_picker",
+        "name": "t:sections.main-product.blocks.variant_picker.name",
+        "limit": 1
+      },
+      {
+        "type": "buy_buttons",
+        "name": "t:sections.main-product.blocks.buy_buttons.name",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "show_dynamic_checkout",
+            "default": true,
+            "label": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.label",
+            "info": "t:sections.main-product.blocks.buy_buttons.settings.show_dynamic_checkout.info"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_gift_card_recipient",
+            "default": false,
+            "label": "t:sections.main-product.blocks.buy_buttons.settings.show_gift_card_recipient.label",
+            "info": "t:sections.main-product.blocks.buy_buttons.settings.show_gift_card_recipient.info"
+          }
+        ]
+      },
+      {
+        "type": "description",
+        "name": "t:sections.main-product.blocks.description.name",
+        "limit": 1
+      },
+      {
+        "type": "rating",
+        "name": "t:sections.main-product.blocks.rating.name",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "paragraph",
+            "content": "t:sections.main-product.blocks.rating.settings.paragraph.content"
+          }
+        ]
+      },
+      {
+        "type": "pickup_availability",
+        "name": "Pickup availability",
+        "limit": 1
+      },
+      {
+        "type": "complementary",
+        "name": "t:sections.main-product.blocks.complementary_products.name",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "paragraph",
+            "content": "t:sections.main-product.blocks.complementary_products.settings.paragraph.content"
+          },
+          {
+            "type": "text",
+            "id": "block_heading",
+            "default": "Pairs well with",
+            "label": "t:sections.main-product.blocks.complementary_products.settings.heading.label"
+          }
+        ]
+      }
+    ],
+    "settings": []
+  }
 {% endschema %}
